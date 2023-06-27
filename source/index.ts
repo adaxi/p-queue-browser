@@ -1,4 +1,3 @@
-import EventEmitter from 'eventemitter3';
 import pTimeout, {TimeoutError} from 'p-timeout';
 import {Queue, RunFunction} from './queue.js';
 import PriorityQueue from './priority-queue.js';
@@ -18,7 +17,7 @@ type EventName = 'active' | 'idle' | 'empty' | 'add' | 'next' | 'completed' | 'e
 /**
 Promise queue with concurrency control.
 */
-export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsType> = PriorityQueue, EnqueueOptionsType extends QueueAddOptions = QueueAddOptions> extends EventEmitter<EventName> {
+export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsType> = PriorityQueue, EnqueueOptionsType extends QueueAddOptions = QueueAddOptions> extends EventTarget {
 	readonly #carryoverConcurrencyCount: boolean;
 
 	readonly #isIntervalIgnored: boolean;
@@ -31,9 +30,9 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 
 	#intervalEnd = 0;
 
-	#intervalId?: NodeJS.Timeout;
+	#intervalId?: ReturnType<typeof setInterval>;
 
-	#timeoutId?: NodeJS.Timeout;
+	#timeoutId?: ReturnType<typeof setTimeout>;
 
 	#queue: QueueType;
 
@@ -101,7 +100,7 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 	#next(): void {
 		this.#pending--;
 		this.#tryToStartAnother();
-		this.emit('next');
+		this.dispatchEvent(new Event('next'));
 	}
 
 	#onResumeInterval(): void {
@@ -147,10 +146,10 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 
 			this.#intervalId = undefined;
 
-			this.emit('empty');
+			this.dispatchEvent(new Event('empty'));
 
 			if (this.#pending === 0) {
-				this.emit('idle');
+				this.dispatchEvent(new Event('idle'));
 			}
 
 			return false;
@@ -164,7 +163,7 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 					return false;
 				}
 
-				this.emit('active');
+				this.dispatchEvent(new Event('active'));
 				job();
 
 				if (canInitializeInterval) {
@@ -271,7 +270,7 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 
 					const result = await operation;
 					resolve(result);
-					this.emit('completed', result);
+					this.dispatchEvent(new Event('completed'));
 				} catch (error: unknown) {
 					if (error instanceof TimeoutError && !options.throwOnTimeout) {
 						resolve();
@@ -279,13 +278,13 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 					}
 
 					reject(error);
-					this.emit('error', error);
+					this.dispatchEvent(new Event('error'));
 				} finally {
 					this.#next();
 				}
 			}, options);
 
-			this.emit('add');
+			this.dispatchEvent(new Event('add'));
 
 			this.#tryToStartAnother();
 		});
@@ -390,11 +389,11 @@ export default class PQueue<QueueType extends Queue<RunFunction, EnqueueOptionsT
 					return;
 				}
 
-				this.off(event, listener);
+				this.removeEventListener(event, listener);
 				resolve();
 			};
 
-			this.on(event, listener);
+			this.addEventListener(event, listener);
 		});
 	}
 

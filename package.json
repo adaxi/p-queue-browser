@@ -1,9 +1,9 @@
 {
-	"name": "p-queue",
+	"name": "p-queue-browser",
 	"version": "7.3.4",
-	"description": "Promise queue with concurrency control",
+	"description": "Promise queue with concurrency control for the browser",
 	"license": "MIT",
-	"repository": "sindresorhus/p-queue",
+	"repository": "adaxi/p-queue-browser",
 	"funding": "https://github.com/sponsors/sindresorhus",
 	"type": "module",
 	"exports": "./dist/index.js",
@@ -43,7 +43,6 @@
 		"bluebird"
 	],
 	"dependencies": {
-		"eventemitter3": "^4.0.7",
 		"p-timeout": "^5.0.2"
 	},
 	"devDependencies": {

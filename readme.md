@@ -47,7 +47,7 @@ const queue = new PQueue({concurrency: 1});
 
 ### PQueue(options?)
 
-Returns a new `queue` instance, which is an [`EventEmitter3`](https://github.com/primus/eventemitter3) subclass.
+Returns a new `queue` instance.
 
 #### options
 
@@ -357,11 +357,11 @@ import PQueue from 'p-queue';
 
 const queue = new PQueue();
 
-queue.on('add', () => {
+queue.addEventListener('add', () => {
 	console.log(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
 });
 
-queue.on('next', () => {
+queue.addEventListener('next', () => {
 	console.log(`Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`);
 });
 
